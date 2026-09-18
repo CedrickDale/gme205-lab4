@@ -116,7 +116,7 @@ BEGIN
     PRINT "Development candidates:", development_candidates
     PRINT "Intersecting parcels:", intersecting_parcels
     PRINT "Development candidates inside study area:", study_area_candidates
-
+    
 END
 
 
@@ -220,3 +220,47 @@ However, the same structured-programming ideas are used in both workflows:
 - **Functions** — separate functions are used to organize the analysis into smaller responsibilities.
 
 The data representation changes, but the underlying algorithmic pattern remains the same.
+
+## Part K — README Reflection
+
+#### Algorithm
+
+For the vector-analysis question on total active parcel area, writing the pseudocode first made the implementation more straightforward. The problem was separated into three simple steps: initialize the total, repeat through every parcel, and add the parcel area only when the parcel is active. This made the final function easier to write because the required inputs, condition, accumulator, and return value were already clear before writing Python code.
+
+> **Algorithm insight:** Writing the logic first separates the problem-solving steps from the programming syntax, making the final implementation easier to trace and verify.
+
+#### Control Flow
+
+Sequence appears in the overall workflow where the program loads the data, constructs `Parcel` objects, defines the analysis parameters, performs the analysis, and produces the outputs. Selection appears in conditions such as checking whether a parcel is active, whether its area meets a threshold, whether its zone is allowed, whether it intersects the study area, and whether a raster cell satisfies the slope and flood criteria. Repetition appears when the program loops through parcel collections and when it processes raster rows and columns.
+
+> **Control-flow insight:** Sequence defines the order of the workflow, selection decides which elements satisfy a rule, and repetition applies those decisions across the dataset.
+
+#### Responsibility
+
+The `intersects()` behavior belongs to `SpatialObject` because spatial intersection is a reusable geometric behavior that is not specific to one type of object. The development-candidate rule belongs to `analysis.py` because being active, belonging to an allowed zone, and meeting a minimum area threshold are analysis-specific criteria rather than permanent characteristics of every parcel.
+
+> **Responsibility rule:** Spatial objects provide their own state and reusable spatial behavior, while analysis functions coordinate objects and apply project-specific rules.
+
+#### Conditional Structure
+
+The development-candidate logic avoids deeply nested `if` statements by using the `is_development_candidate()` helper function with guard clauses. Each failed condition immediately returns `False`, while parcels that satisfy all conditions return `True`. The `development_candidates()` function then only handles repetition across the parcel collection.
+
+> **Conditional design:** Separating one-parcel decision logic from collection-level repetition keeps the code shallow, readable, and easier to extend.
+
+#### Area Meaning
+
+The exercise uses the provided `area_sqm` attribute instead of interpreting `geometry.area` as square meters because the parcel geometries use longitude and latitude coordinates. Shapely calculates area using the coordinate space supplied to it, so `geometry.area` would not automatically represent an area in square meters. The provided `area_sqm` value already contains the metric area required by the analysis.
+
+> **Area meaning:** Geometry calculations depend on the coordinate system, so the model must use an attribute whose units correctly match the analysis question.
+
+#### Vector vs Raster
+
+Vector repetition processes one `Parcel` object at a time, so one loop is normally used to move through the parcel collection. Raster processing uses a two-dimensional grid, so it naturally requires an outer loop for rows and an inner loop for columns. Although the representation is different, both workflows still use repetition to process individual spatial elements and selection to determine whether each element satisfies the required rule.
+
+> **Vector-raster insight:** The shape of the data changes how repetition is written, but the same sequence, selection, and repetition concepts remain underneath both workflows.
+
+#### Scale
+
+The separation between spatial objects, analysis functions, parameters, and runner responsibilities would remain useful even if the dataset grew to one million parcels or a `10,000 × 10,000` raster. The design would still make the system easier to understand and maintain. However, explicit Python loops over extremely large datasets would become inefficient. Larger workflows would likely require spatial indexing, chunked processing, optimized array operations, or specialized GIS libraries while preserving the same overall separation of responsibilities.
+
+> **Scale insight:** Clean algorithm and object design remains useful at larger scales, but the implementation strategy must become more efficient as the amount of spatial data increases.

@@ -118,3 +118,105 @@ BEGIN
     PRINT "Development candidates inside study area:", study_area_candidates
 
 END
+
+
+### Challenge 1 — Change the Policy Without Rewriting the Algorithm
+
+The `development_candidates()` function was executed using two different parameter sets without changing the function implementation.
+
+Policy 1:
+- Minimum area: 5,000 m²
+- Allowed zones: Residential and Commercial
+- Candidate count: 45
+
+Policy 2:
+- Minimum area: 8,000 m²
+- Allowed zones: Residential and Commercial
+- Candidate count: 26
+
+The results changed from 45 candidates to 26 candidates when the minimum area requirement was increased from 5,000 m² to 8,000 m². The `development_candidates()` function itself remained unchanged, demonstrating that the policy can be modified through input parameters rather than rewriting the algorithm.
+
+### Challenge 2 — Compose, Do Not Duplicate
+
+The development candidates inside the study area were obtained by composing existing analysis results instead of creating a new function that repeats all of the conditions.
+
+First, the development candidates were identified using the existing `development_candidates()` function:
+
+```python
+candidates = development_candidates(
+    parcels,
+    min_area=5000.0,
+    allowed_zones={"Residential", "Commercial"}
+)
+```
+
+### Challenge 3 — Explain One “Bad vs Good” Refactor
+
+An example of a less readable approach is to place all development-candidate conditions inside nested `if` statements:
+
+```python
+for parcel in parcels:
+    if parcel.is_active:
+        if parcel.zone == "Residential" or parcel.zone == "Commercial":
+            if parcel.area_sqm >= min_area:
+                candidates.append(parcel)
+```
+
+This approach works, but the conditions become more deeply nested as more criteria are added.
+
+The final implementation uses a separate helper function:
+```python
+
+def is_development_candidate(parcel, min_area, allowed_zones):
+    if not parcel.is_active:
+        return False
+
+    if parcel.zone not in allowed_zones:
+        return False
+
+    if parcel.area_sqm < min_area:
+        return False
+
+    return True
+```
+The collection function then handles only the repetition across parcels:
+```python
+def development_candidates(parcels, min_area, allowed_zones):
+    candidates = []
+
+    for parcel in parcels:
+        if is_development_candidate(parcel, min_area, allowed_zones):
+            candidates.append(parcel)
+
+    return candidates
+```
+
+The responsibility for deciding whether one parcel satisfies the development policy was moved into is_development_candidate(). The development_candidates() function is then responsible only for looping through the parcel collection and collecting the parcels that pass the rule.
+
+This makes the code easier to read, test, and extend because additional criteria can be added to the helper without creating deeper nested conditions in the collection loop.
+
+### Challenge 4 — Transfer the Algorithmic Pattern
+
+The vector analysis processes one `Parcel` object at a time:
+
+```text
+FOR EACH parcel
+```
+
+The raster analysis processes a two-dimensional grid:
+
+```text
+FOR EACH row
+    FOR EACH column
+```
+
+The representation-specific parts are different. The vector workflow uses `Parcel` objects, parcel attributes, and spatial behavior such as intersection. The raster workflow uses row and column positions and evaluates cell values from the slope and flood grids.
+
+However, the same structured-programming ideas are used in both workflows:
+
+- **Sequence** — data is loaded, processed, and reported in a defined order.
+- **Selection** — conditions determine whether a parcel or raster cell satisfies the analysis rule.
+- **Repetition** — the vector workflow repeats over parcels, while the raster workflow repeats over rows and cells.
+- **Functions** — separate functions are used to organize the analysis into smaller responsibilities.
+
+The data representation changes, but the underlying algorithmic pattern remains the same.

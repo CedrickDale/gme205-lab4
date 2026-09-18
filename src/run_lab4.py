@@ -93,6 +93,12 @@ def main():
         allowed_zones=ALLOWED_ZONES
     )
 
+    candidates_policy_2 = development_candidates(
+        parcels,
+        min_area=8000.0,
+        allowed_zones={"Residential", "Commercial"}
+    )
+
     inside_study_area = intersecting_parcels(
         candidates,
         study_area
@@ -316,6 +322,16 @@ def main():
 
     print("Lab 4 workflow completed.")
 
+    print(
+    "Policy 1 candidate count:",
+    len(candidates)
+    )
+
+    print(
+    "Policy 2 candidate count:",
+    len(candidates_policy_2)
+    )
+    
     print(
         "Report saved to:",
         "output/lab4_report.json"
